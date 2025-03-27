@@ -207,8 +207,8 @@ fn get_process_info(pid: &str) -> crate::error::Result<(String, String)> {
     let path_pos = header_line.to_lowercase().find("executablepath").unwrap_or(header_line.len());
     
     // 提取进程名和路径
-    let name = if name_pos < data_line.len() {
-        let end = if path_pos < data_line.len() { path_pos } else { data_line.len() };
+    let name = if name_pos < data_line.len() && name_pos <= path_pos {
+        let end = std::cmp::min(path_pos, data_line.len());
         data_line[name_pos..end].trim().to_string()
     } else {
         "Unknown".to_string()
