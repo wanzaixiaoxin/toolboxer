@@ -58,6 +58,10 @@ fn main() -> toolboxer::Result<()> {
             // Execute the tree command with the configured options
             commands::execute_tree(args, &config)?;
         }
+        // Handle the 'portown' subcommand
+        Commands::Portown => {
+            commands::execute_portown()?;
+        }
         // Additional subcommands will be handled here as the toolkit expands
     }
 

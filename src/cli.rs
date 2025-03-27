@@ -20,6 +20,8 @@ pub struct Cli {
 pub enum Commands {
     /// Display directory structure as a tree
     Tree(TreeArgs),
+    /// Display port ownership information
+    Portown,
     // Additional subcommands will be added here as the toolkit expands
 }
 

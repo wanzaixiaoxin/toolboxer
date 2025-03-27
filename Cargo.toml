@@ -11,13 +11,13 @@ keywords = ["cli", "tools", "utility", "development", "productivity"]
 categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
-# CLI framework
-clap = { version = "4.4", features = ["derive"] }
+clap = { version = "4.2.5", features = ["derive"] }
+thiserror = "1.0.40"
+termcolor = "1.2.0"
 clap_complete = "4.4"
 
 # Error handling
 anyhow = "1.0"
-thiserror = "1.0"
 
 # Utilities
 colored = "2.0"
