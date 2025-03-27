@@ -72,6 +72,25 @@ pub fn format_time(time: std::time::SystemTime) -> String {
         .unwrap_or_else(|_| "Unknown".to_string())
 }
 
+/// Logs command execution metrics including duration and status
+///
+/// # Arguments
+/// * `command` - The command being executed
+/// * `duration` - Execution duration in milliseconds
+/// * `status` - Execution status (success/failure)
+/// * `output_size` - Optional output size in bytes
+pub fn log_command_metrics(command: &str, duration: u128, status: &str, output_size: Option<usize>) {
+    /*
+    println!(
+        "[CMD_METRICS] command={} duration={}ms status={} output_size={}",
+        command,
+        duration,
+        status,
+        output_size.unwrap_or(0)
+    );
+    */
+}
+
 /// Determines if a file or directory is hidden
 ///
 /// Works cross-platform:

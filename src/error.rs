@@ -16,6 +16,10 @@ pub enum Error {
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
+    /// Represents integer conversion errors
+    #[error("Integer conversion error: {0}")]
+    IntConversion(#[from] std::num::TryFromIntError),
+
     /// Represents errors when accessing a file or directory
     #[error("Failed to access path: {}", .0.display())]
     PathAccess(PathBuf),

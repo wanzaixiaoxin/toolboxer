@@ -26,8 +26,8 @@ fn main() -> toolboxer::Result<()> {
             
             // Configure the tree display options based on command line arguments
             // Set maximum traversal depth if specified
-            if let Some(depth) = args.depth {
-                config = config.with_max_depth(depth)?;
+            if let Some(depth) = args.max_depth {
+                config = config.with_max_depth(depth.try_into()?)?;
             }
             
             // Configure display options: hidden files, permissions, sizes, and dates
@@ -59,8 +59,8 @@ fn main() -> toolboxer::Result<()> {
             commands::execute_tree(args, &config)?;
         }
         // Handle the 'portown' subcommand
-        Commands::Portown => {
-            commands::execute_portown()?;
+        Commands::Portown(args) => {
+            commands::execute_portown(args)?;
         }
         // Additional subcommands will be handled here as the toolkit expands
     }

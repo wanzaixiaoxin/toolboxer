@@ -1,60 +1,96 @@
-use std::process::Command;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::{self, Write};
+use std::process::Command;
+use std::sync::Mutex;
 use termcolor::{Color, ColorChoice, ColorSpec, StandardStream, WriteColor};
 use crate::error::Error;
 
-pub fn execute() -> crate::error::Result<()> {
-    // 获取所有端口信息
+use crate::cli::PortownArgs;
+
+pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
+    use std::time::Instant;
+    
+    // Record start time for performance measurement
+    let start_time = Instant::now();
+    
+    // 获取TCP/UDP连接信息
     let output = Command::new("netstat")
-        .args(&["-ano"])
+        .args(["-ano"])
         .output()
-        .map_err(|e| Error::Other(format!("Command execution error: {}", e)))?;
-
+        .map_err(|e| Error::Other(format!("Failed to execute netstat: {}", e)))?;
+    
     if !output.status.success() {
-        return Err(Error::Other(
-            format!("Command execution failed: {}", String::from_utf8_lossy(&output.stderr))
-        ));
+        return Err(Error::Other("netstat command failed".to_string()));
     }
-
-    let output_str = String::from_utf8_lossy(&output.stdout);
-    let lines: Vec<&str> = output_str.lines().collect();
-
+    
+    let netstat_output = String::from_utf8_lossy(&output.stdout);
+    
     // 收集所有进程信息，避免重复查询
     let mut pid_cache: HashMap<String, (String, String)> = HashMap::new();
     let mut connections = Vec::new();
 
-    // 解析连接信息
-    for line in lines.iter().skip(4) {
-        let parts: Vec<&str> = line.split_whitespace().collect();
-        if parts.len() >= 5 {
-            let protocol = parts[0].to_string();
-            let local_address = parts[1].to_string();
-            let foreign_address = parts[2].to_string();
-            let state = if protocol == "UDP" || parts.len() < 4 {
-                "N/A".to_string()
-            } else {
-                parts[3].to_string()
-            };
-            let pid = if protocol == "UDP" {
-                parts[3].to_string()
-            } else {
-                parts[parts.len() - 1].to_string()
-            };
-
-            connections.push((protocol, local_address, foreign_address, state, pid));
+    // 解析netstat输出
+    for line in netstat_output.lines() {
+        // 根据参数过滤连接类型
+        if args.udp_only && !line.contains("UDP") {
+            continue;
         }
+        if args.tcp_only && !line.contains("TCP") {
+            continue;
+        }
+        if !(line.contains("TCP") || line.contains("UDP")) {
+            continue;
+        }
+        
+        let parts: Vec<&str> = line.split_whitespace().collect();
+        // Windows netstat output has different column counts for TCP vs UDP
+        let min_columns = if line.contains("TCP") { 5 } else { 4 };
+        if parts.len() < min_columns {
+            continue;
+        }
+        
+        let protocol = if line.contains("TCP") {
+            "TCP".to_string()
+        } else {
+            "UDP".to_string()
+        };
+        let local_address = parts[1].to_string();
+        let foreign_address = parts[2].to_string();
+        // UDP connections don't have state in Windows netstat
+        let state = if line.contains("TCP") {
+            parts[3].to_string()
+        } else {
+            "-".to_string()
+        };
+        
+        // 根据参数过滤连接状态
+        if args.listen_only && state != "LISTENING" {
+            continue;
+        }
+        if args.established_only && state != "ESTABLISHED" {
+            continue;
+        }
+        
+        // PID is in different columns for TCP vs UDP
+        let pid = if line.contains("TCP") {
+            parts[4].to_string()
+        } else {
+            parts[3].to_string()
+        };
+        
+        connections.push((protocol, local_address, foreign_address, state, pid));
     }
 
-    // 获取所有进程信息
-    for (_, _, _, _, pid) in &connections {
+    // 获取所有进程信息（去重后）
+    let unique_pids: HashSet<_> = connections.iter().map(|(_, _, _, _, pid)| pid).collect();
+    for pid in unique_pids {
         if !pid_cache.contains_key(pid) {
             match get_process_info(pid) {
                 Ok(info) => {
-                    pid_cache.insert(pid.clone(), info);
+                    pid_cache.insert(pid.to_string(), info);
                 },
                 Err(_) => {
-                    pid_cache.insert(pid.clone(), ("Unknown".to_string(), "Unknown".to_string()));
+                    pid_cache.insert(pid.to_string(), ("Unknown".to_string(), "Unknown".to_string()));
                 }
             }
         }
@@ -83,6 +119,14 @@ pub fn execute() -> crate::error::Result<()> {
         )?;
     }
 
+    // Log command execution time
+    crate::utils::log_command_metrics(
+        "portown", 
+        start_time.elapsed().as_millis(), 
+        "success", 
+        None
+    );
+    
     Ok(())
 }
 
@@ -177,48 +221,137 @@ fn print_connection(
     Ok(())
 }
 
+lazy_static::lazy_static! {
+    static ref PROCESS_CACHE: Mutex<HashMap<String, (String, String)>> = Mutex::new(HashMap::new());
+}
+
 fn get_process_info(pid: &str) -> crate::error::Result<(String, String)> {
-    let output = Command::new("wmic")
-        .args(&["process", "where", &format!("processid={}", pid), "get", "name,executablepath"])
-        .output()
-        .map_err(|e| Error::Other(format!("Command execution error: {}", e)))?;
+    use std::time::Instant;
+use winapi::shared::minwindef::{DWORD, FALSE};
+use winapi::shared::ntdef::HANDLE;
+use winapi::um::processthreadsapi::OpenProcess;
+use winapi::um::winnt::PROCESS_QUERY_LIMITED_INFORMATION;
+use winapi::um::winbase::QueryFullProcessImageNameA;
+use winapi::um::psapi::GetModuleFileNameExA;
+use winapi::um::handleapi::CloseHandle;
 
-    if !output.status.success() {
-        return Err(Error::Other(
-            format!("Command execution failed: {}", String::from_utf8_lossy(&output.stderr))
-        ));
+
+    let start_time = Instant::now();
+    
+    // 检查缓存
+    {
+        let cache = PROCESS_CACHE.lock().unwrap();
+        if let Some(info) = cache.get(pid) {
+            return Ok(info.clone());
+        }
+    }
+    
+    // 使用Windows API获取进程信息
+    let pid_num: DWORD = pid.parse().unwrap_or(0);
+    let process_handle: HANDLE;
+    
+    // 尝试获取SeDebugPrivilege特权
+    unsafe {
+        let mut token: winapi::um::winnt::HANDLE = std::ptr::null_mut();
+        use winapi::um::processthreadsapi::OpenProcessToken;
+        use winapi::um::winbase::LookupPrivilegeValueA;
+        
+        if OpenProcessToken(
+            winapi::um::processthreadsapi::GetCurrentProcess(),
+            winapi::um::winnt::TOKEN_ADJUST_PRIVILEGES | winapi::um::winnt::TOKEN_QUERY,
+            &mut token
+        ) != 0 {
+            let mut luid = winapi::um::winnt::LUID { LowPart: 0, HighPart: 0 };
+            if LookupPrivilegeValueA(
+                std::ptr::null(),
+                winapi::um::winnt::SE_DEBUG_NAME.as_ptr() as *const i8,
+                &mut luid
+            ) != 0 {
+                let mut tp = winapi::um::winnt::TOKEN_PRIVILEGES {
+                    PrivilegeCount: 1,
+                    Privileges: [winapi::um::winnt::LUID_AND_ATTRIBUTES {
+                        Luid: luid,
+                        Attributes: winapi::um::winnt::SE_PRIVILEGE_ENABLED
+                    }]
+                };
+                winapi::um::securitybaseapi::AdjustTokenPrivileges(
+                    token,
+                    FALSE,
+                    &mut tp,
+                    std::mem::size_of::<winapi::um::winnt::TOKEN_PRIVILEGES>() as u32,
+                    std::ptr::null_mut(),
+                    std::ptr::null_mut()
+                );
+            }
+            winapi::um::handleapi::CloseHandle(token);
+        }
+        
+        process_handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid_num);
+        if process_handle.is_null() {
+            let last_error = winapi::um::errhandlingapi::GetLastError();
+            /*
+            eprintln!(
+                "Failed to open process with PID: {} (Error: {})", 
+                pid, 
+                last_error
+            );
+            */
+            // 即使失败也更新缓存，避免重复尝试
+            let mut cache = PROCESS_CACHE.lock().unwrap();
+            cache.insert(
+                pid.to_string(), 
+                ("Unknown".to_string(), "Unknown".to_string())
+            );
+            return Ok(("Unknown".to_string(), "Unknown".to_string()));
+        }
+    }
+    
+    // 获取进程名
+    let mut name_buffer = [0u8; 260];
+    let mut name = "Unknown".to_string();
+    
+    unsafe {
+        let mut size = name_buffer.len() as DWORD;
+        if QueryFullProcessImageNameA(process_handle, 0, name_buffer.as_mut_ptr() as *mut i8, &mut size) != 0 {
+            name = String::from_utf8_lossy(
+                &name_buffer[..size as usize]
+            ).to_string();
+            if let Some(last_slash) = name.rfind('\\') {
+                name = name[last_slash + 1..].to_string();
+            }
+            //eprintln!("Successfully got process name for PID {}: {}", pid, name);
+        } else {
+            //eprintln!("Failed to get process name for PID: {}", pid);
+        }
+    }
+    
+    // 获取进程路径
+    let mut path = "Unknown".to_string();
+    unsafe {
+        let mut path_buffer = [0u8; 260];
+        if GetModuleFileNameExA(process_handle, std::ptr::null_mut(), path_buffer.as_mut_ptr() as *mut i8, path_buffer.len() as DWORD) != 0 {
+            path = String::from_utf8_lossy(&path_buffer).to_string();
+            //eprintln!("Successfully got process path for PID {}: {}", pid, path);
+        } else {
+            let last_error = winapi::um::errhandlingapi::GetLastError();
+            //eprintln!("Failed to get process path for PID: {} (Error: {})", pid, last_error);
+        }
+        CloseHandle(process_handle);
     }
 
-    let output_str = String::from_utf8_lossy(&output.stdout);
-    let lines: Vec<&str> = output_str.lines()
-        .filter(|line| !line.trim().is_empty())
-        .collect();
-
-    if lines.len() < 2 {
-        return Ok((String::from("Unknown"), String::from("Unknown")));
+    // 更新缓存
+    {
+        let mut cache = PROCESS_CACHE.lock().unwrap();
+        cache.insert(pid.to_string(), (name.clone(), path.clone()));
     }
 
-    // 处理 WMIC 输出，提取进程名和路径
-    let header_line = lines[0];
-    let data_line = lines[1];
+    // 记录执行时间
+    crate::utils::log_command_metrics(
+        &format!("Get-Process {}", pid), 
+        start_time.elapsed().as_millis(), 
+        "success", 
+        None
+    );
     
-    // 找出 Name 和 ExecutablePath 在输出中的位置
-    let name_pos = header_line.to_lowercase().find("name").unwrap_or(0);
-    let path_pos = header_line.to_lowercase().find("executablepath").unwrap_or(header_line.len());
-    
-    // 提取进程名和路径
-    let name = if name_pos < data_line.len() && name_pos <= path_pos {
-        let end = std::cmp::min(path_pos, data_line.len());
-        data_line[name_pos..end].trim().to_string()
-    } else {
-        "Unknown".to_string()
-    };
-    
-    let path = if path_pos < data_line.len() {
-        data_line[path_pos..].trim().to_string()
-    } else {
-        "Unknown".to_string()
-    };
-
     Ok((name, path))
 }

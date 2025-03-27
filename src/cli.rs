@@ -21,50 +21,70 @@ pub enum Commands {
     /// Display directory structure as a tree
     Tree(TreeArgs),
     /// Display port ownership information
-    Portown,
+    Portown(PortownArgs),
     // Additional subcommands will be added here as the toolkit expands
 }
 
 /// Arguments for the 'tree' subcommand
 #[derive(Parser)]
 pub struct TreeArgs {
-    /// Root directory to start from
+    /// Root directory to start building the tree from
     #[arg(default_value = ".")]
     pub path: PathBuf,
 
-    /// Maximum depth to traverse
+    /// Maximum depth to display
     #[arg(short, long)]
-    pub depth: Option<i32>,
+    pub max_depth: Option<usize>,
 
-    /// Show hidden files
-    #[arg(short = 'a', long)]
+    /// Include hidden files
+    #[arg(short, long)]
     pub all: bool,
 
-    /// Sort by type (directories first)
-    #[arg(short = 't', long)]
+    /// Show file permissions
+    #[arg(short, long)]
+    pub permissions: bool,
+
+    /// Show human-readable sizes
+    #[arg(long)]
+    pub human_size: bool,
+
+    /// Show last modified date
+    #[arg(short, long)]
+    pub modified: bool,
+
+    /// Sort by type
+    #[arg(long)]
     pub sort_type: bool,
 
     /// Sort by size
-    #[arg(short = 's', long)]
+    #[arg(long)]
     pub sort_size: bool,
 
     /// Sort by modification date
-    #[arg(short = 'D', long)]
+    #[arg(long)]
     pub sort_date: bool,
 
-    /// Show file permissions
-    #[arg(short = 'p', long)]
-    pub permissions: bool,
-
-    /// Show file sizes in human-readable format
-    #[arg(short = 'S', long)]
-    pub human_size: bool,
-
-    /// Show modification dates
-    #[arg(short = 'm', long)]
-    pub modified: bool,
-
-    /// Filter files by pattern (e.g., *.rs for Rust files)
-    #[arg(short = 'f', long)]
+    /// Filter by pattern
+    #[arg(short, long)]
     pub filter: Option<String>,
+}
+
+/// Arguments for the 'portown' subcommand
+#[derive(Parser)]
+pub struct PortownArgs {
+    /// Show only TCP connections
+    #[arg(short = 't', long)]
+    pub tcp_only: bool,
+
+    /// Show only UDP connections
+    #[arg(short = 'u', long)]
+    pub udp_only: bool,
+
+    /// Show only listening ports
+    #[arg(short = 'l', long)]
+    pub listen_only: bool,
+
+    /// Show only established connections
+    #[arg(short = 'e', long)]
+    pub established_only: bool,
 }
