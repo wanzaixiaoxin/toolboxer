@@ -137,7 +137,6 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
 
     // 打印未知进程连接
     for (idx, (protocol, local_address, foreign_address, state, pid)) in unknown_conns.iter().enumerate() {
-        let default = ("Unknown".to_string(), "Unknown".to_string());
         let (name, path) = pid_cache.get(pid).unwrap();
         let bg_color = if (known_conns.len() + idx) % 2 == 0 { None } else { Some(Color::Ansi256(236)) };
         print_connection(
