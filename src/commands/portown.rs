@@ -110,22 +110,44 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
     // 打印表头
     print_header()?;
 
-    // 打印连接信息
-    for (idx, (protocol, local_address, foreign_address, state, pid)) in connections.iter().enumerate() {
-        let default = ("Unknown".to_string(), "Unknown".to_string());
-        let (name, path) = pid_cache.get(pid).unwrap_or(&default);
-        
-        // 交替行颜色
+    // 分离已知和未知进程连接
+    let (known_conns, unknown_conns): (Vec<_>, Vec<_>) = connections
+        .iter()
+        .partition(|(_, _, _, _, pid)| {
+            pid_cache.get(pid)
+                .map(|(name, _)| name != "Unknown")
+                .unwrap_or(false)
+        });
+
+    // 打印已知进程连接
+    for (idx, (protocol, local_address, foreign_address, state, pid)) in known_conns.iter().enumerate() {
+        let (name, path) = pid_cache.get(pid).unwrap();
         let bg_color = if idx % 2 == 0 { None } else { Some(Color::Ansi256(236)) };
-        
         print_connection(
-            protocol, 
-            local_address, 
-            foreign_address, 
-            state, 
-            pid, 
-            name, 
-            path, 
+            protocol,
+            local_address,
+            foreign_address,
+            state,
+            pid,
+            name,
+            path,
+            bg_color
+        )?;
+    }
+
+    // 打印未知进程连接
+    for (idx, (protocol, local_address, foreign_address, state, pid)) in unknown_conns.iter().enumerate() {
+        let default = ("Unknown".to_string(), "Unknown".to_string());
+        let (name, path) = pid_cache.get(pid).unwrap();
+        let bg_color = if (known_conns.len() + idx) % 2 == 0 { None } else { Some(Color::Ansi256(236)) };
+        print_connection(
+            protocol,
+            local_address,
+            foreign_address,
+            state,
+            pid,
+            name,
+            path,
             bg_color
         )?;
     }
