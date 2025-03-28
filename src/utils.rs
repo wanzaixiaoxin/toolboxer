@@ -6,8 +6,8 @@
 use colored::Colorize;
 use std::fs::{self, Metadata};
 use std::path::Path;
-use std::time::SystemTime;
-use crate::error::Result;
+
+
 
 /// 将文件权限格式化为字符串（例如："rwxr--r--"）
 ///
@@ -138,32 +138,7 @@ pub fn colorize_name(name: &str, is_dir: bool) -> String {
     }
 }
 
-/// 检查文件名是否匹配简单模式
-///
-/// # 参数
-/// * `path` - 需要检查的路径
-/// * `pattern` - 匹配模式
-///
-/// # 返回值
-/// 匹配返回`true`，否则返回`false`
-pub fn matches_pattern(path: &Path, pattern: &str) -> bool {
-    path.file_name()
-        .and_then(|name| name.to_str())
-        .map(|name| name.contains(pattern))
-        .unwrap_or(false)
-}
 
-/// 获取文件大小和修改时间
-///
-/// # 参数
-/// * `path` - 文件路径
-///
-/// # 返回值
-/// 包含文件大小（字节）和修改时间的元组
-/// 如果无法访问文件则返回错误
-pub fn get_file_info(path: &Path) -> Result<(u64, SystemTime)> {
-    let metadata = fs::metadata(path)?;
-    let size = metadata.len();
-    let modified = metadata.modified()?;
-    Ok((size, modified))
+pub fn is_directory(path: &Path) -> std::io::Result<bool> {
+    path.metadata().map(|md| md.is_dir())
 }

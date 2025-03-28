@@ -43,21 +43,25 @@ impl DirEntryExt for DirEntry {
 /// # 返回
 /// * `Ok(())` 命令执行成功时返回
 /// * `Err(Error)` 执行过程中发生错误时返回
-pub fn execute(args: &TreeArgs, config: &Config) -> Result<()> {
+pub fn execute(args: &TreeArgs) -> Result<()> {
+    let config = Config::new(args.path.clone())
+        .with_show_hidden(args.all)
+        .with_directories_only(args.directories_only)
+        .with_max_depth(args.max_depth.unwrap_or(5))?;
     let root = &args.path;
     let walker = WalkDir::new(root).max_depth(config.max_depth.unwrap_or(std::usize::MAX));
 
     let mut entries: Vec<DirEntry> = walker
         .into_iter()
-        .filter_entry(|e| filter_entry(e, config))
+        .filter_entry(|e| filter_entry(e, &config))
         .filter_map(|e| e.ok())
         .collect();
 
-    sort_entries(&mut entries, config);
+    sort_entries(&mut entries, &config);
 
     for (index, entry) in entries.iter().enumerate() {
         let is_last = index == entries.len() - 1;
-        print_entry(entry, root, is_last, "", config)?;
+        print_entry(entry, root, is_last, "", &config)?;
     }
 
     Ok(())
@@ -73,10 +77,20 @@ pub fn execute(args: &TreeArgs, config: &Config) -> Result<()> {
 /// * `entry` - 要检查的目录条目
 /// * `config` - 包含过滤设置的配置项（show_hidden、pattern等）
 fn filter_entry(entry: &DirEntry, config: &Config) -> bool {
+    // 优先检查目录类型过滤条件
+    if config.directories_only {
+        if !entry.file_type().is_dir() {
+            return false;
+        }
+        // 当启用目录过滤时，直接保留目录项
+        return true;
+    }
+
     if !config.show_hidden && utils::is_hidden(entry.path()) {
         return false;
     }
-    if let Some(ref pattern) = config.pattern {
+
+    let pattern_match = if let Some(ref pattern) = config.pattern {
         entry
             .file_name()
             .to_str()
@@ -84,7 +98,13 @@ fn filter_entry(entry: &DirEntry, config: &Config) -> bool {
             .unwrap_or(false)
     } else {
         true
+    };
+
+    if !pattern_match {
+        return false;
     }
+
+    true
 }
 
 /// 根据配置对目录条目进行排序

@@ -34,7 +34,7 @@ pub struct TreeArgs {
     pub path: PathBuf,
 
     /// 最大显示深度
-    #[arg(short, long)]
+    #[arg(short = 'd', long)]
     pub max_depth: Option<usize>,
 
     /// 包含隐藏文件
@@ -45,29 +45,32 @@ pub struct TreeArgs {
     #[arg(short, long)]
     pub permissions: bool,
 
-    /// 显示人类可读的文件大小
-    #[arg(long)]
-    pub human_size: bool,
+    /// 显示文件大小（自动转换单位）
+    #[arg(short = 's', long)]
+    pub size: bool,
 
     /// 显示最后修改时间
-    #[arg(short, long)]
+    #[arg(short = 'M', long = "mod")]
     pub modified: bool,
 
     /// 按类型排序
-    #[arg(long)]
-    pub sort_type: bool,
+    #[arg(short = 'T', long = "type")]
+    pub type_sort: bool,
 
     /// 按大小排序
-    #[arg(long)]
-    pub sort_size: bool,
+    #[arg(short = 'S', long = "sort-size")]
+    pub size_sort: bool,
 
     /// 按修改时间排序
-    #[arg(long)]
-    pub sort_date: bool,
+    #[arg(short = 't', long = "date")]
+    pub date_sort: bool,
 
     /// 按模式过滤文件
     #[arg(short, long)]
     pub filter: Option<String>,
+    /// 仅显示目录结构
+    #[arg(short = 'D', long = "dirs")]
+    pub directories_only: bool,
 }
 
 
@@ -79,16 +82,16 @@ pub struct PortownArgs {
     #[arg(short, long)]
     pub listen: bool,
 
-    /// 仅显示TCP连接
-    #[arg(long)]
-    pub tcp_only: bool,
+    /// 显示TCP连接
+    #[arg(short = 't', long = "tcp")]
+    pub tcp: bool,
 
-    /// 仅显示UDP连接
-    #[arg(long)]
-    pub udp_only: bool,
+    /// 显示UDP连接
+    #[arg(short = 'u', long = "udp")]
+    pub udp: bool,
 
     /// 设置显示深度（进程树层级）
-    #[arg(short, long)]
+    #[arg(short = 'd', long)]
     pub depth: Option<usize>,
 
     /// 仅显示已建立的连接

@@ -43,10 +43,10 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
         current_depth += 1;
     
         // 原有过滤逻辑保持不变
-        if args.udp_only && !line.contains("UDP") {
+        if args.udp && !line.contains("UDP") {
             continue;
         }
-        if args.tcp_only && !line.contains("TCP") {
+        if args.tcp && !line.contains("TCP") {
             continue;
         }
         if !(line.contains("TCP") || line.contains("UDP")) {

@@ -10,6 +10,7 @@ use toolboxer::cli::{Cli, Commands};
 use toolboxer::commands;
 use toolboxer::config::{Config, SortBy};
 
+
 /// Toolboxer应用程序主入口
 ///
 /// # 错误处理
@@ -28,36 +29,36 @@ fn main() -> toolboxer::Result<()> {
             // 根据命令行参数配置显示选项
             // Set maximum traversal depth if specified
             if let Some(depth) = args.max_depth {
-                config = config.with_max_depth(depth.try_into()?)?;
+                config = config.with_max_depth(depth)?;
             }
             
             // Configure display options: hidden files, permissions, sizes, and dates
             config = config
                 .with_show_hidden(args.all)
                 .with_show_permissions(args.permissions)
-                .with_show_size(args.human_size)
-                .with_show_date(args.modified);
+                .with_show_size(args.size)
+                .with_show_date(args.modified)
+                .with_directories_only(args.directories_only);
 
             // 根据命令行标志设置排序模式
             // Priority: type > size > date > name (default)
-            let sort_by = if args.sort_type {
+            config = config.with_sort_by(if args.type_sort {
                 SortBy::Type
-            } else if args.sort_size {
+            } else if args.size_sort {
                 SortBy::Size
-            } else if args.sort_date {
+            } else if args.date_sort {
                 SortBy::Date
             } else {
                 SortBy::Name
-            };
-            config = config.with_sort_by(sort_by);
+            });
 
             // 应用用户提供的文件名过滤模式
-            if let Some(pattern) = args.filter.clone() {
-                config = config.with_pattern(Some(pattern))?;
+            if let Some(pattern) = &args.filter {
+                config = config.with_pattern(Some(pattern.clone()))?;
             }
 
             // 使用配置参数执行tree命令
-            commands::execute_tree(args, &config)?;
+            commands::execute_tree(args)?;
         }
         // 处理'portown'端口占用查询命令
         Commands::Portown(args) => {

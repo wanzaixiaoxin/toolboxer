@@ -12,6 +12,8 @@ use std::path::PathBuf;
 /// particularly for the tree command's display options.
 #[derive(Debug, Clone)]
 pub struct Config {
+    /// 是否只显示目录
+    pub directories_only: bool,
     /// Root directory path for operations
     pub root: PathBuf,
     /// Maximum depth to traverse (None for unlimited)
@@ -53,6 +55,7 @@ impl Config {
     /// A new Config instance with default settings
     pub fn new(root: PathBuf) -> Self {
         Self {
+            directories_only: false,
             root,
             max_depth: None,
             show_hidden: false,
@@ -72,11 +75,8 @@ impl Config {
     /// # Returns
     /// * `Ok(Config)` - Updated configuration
     /// * `Err(Error)` - If depth is negative
-    pub fn with_max_depth(mut self, depth: i32) -> Result<Self> {
-        if depth < 0 {
-            return Err(Error::InvalidDepth(depth));
-        }
-        self.max_depth = Some(depth as usize);
+    pub fn with_max_depth(mut self, depth: usize) -> Result<Self> {
+        self.max_depth = Some(depth);
         Ok(self)
     }
 
@@ -133,6 +133,11 @@ impl Config {
     /// # Returns
     /// * `Ok(Config)` - Updated configuration
     /// * `Err(Error)` - If pattern is invalid
+    pub fn with_directories_only(mut self, directories_only: bool) -> Self {
+        self.directories_only = directories_only;
+        self
+    }
+
     pub fn with_pattern(mut self, pattern: Option<String>) -> Result<Self> {
         if let Some(p) = pattern {
             // Here you might want to validate the pattern
