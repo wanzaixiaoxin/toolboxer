@@ -58,7 +58,7 @@ fn main() -> toolboxer::Result<()> {
             }
 
             // 使用配置参数执行tree命令
-            commands::execute_tree(args)?;
+            commands::execute_tree(args, &config)?;
         }
         // 处理'portown'端口占用查询命令
         Commands::Portown(args) => {

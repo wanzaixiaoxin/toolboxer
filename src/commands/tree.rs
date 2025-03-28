@@ -43,11 +43,7 @@ impl DirEntryExt for DirEntry {
 /// # 返回
 /// * `Ok(())` 命令执行成功时返回
 /// * `Err(Error)` 执行过程中发生错误时返回
-pub fn execute(args: &TreeArgs) -> Result<()> {
-    let config = Config::new(args.path.clone())
-        .with_show_hidden(args.all)
-        .with_directories_only(args.directories_only)
-        .with_max_depth(args.max_depth.unwrap_or(5))?;
+pub fn execute(args: &TreeArgs, config: &Config) -> Result<()> {
     let root = &args.path;
     let walker = WalkDir::new(root).max_depth(config.max_depth.unwrap_or(std::usize::MAX));
 

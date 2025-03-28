@@ -3,7 +3,7 @@
 //! This module provides configuration structures and methods for managing
 //! various settings and options used throughout the application.
 
-use crate::error::{Error, Result};
+use crate::error::Result;
 use std::path::PathBuf;
 
 /// Configuration structure for command execution
