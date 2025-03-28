@@ -10,10 +10,10 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
-    /// Subcommand to execute
     #[command(subcommand)]
     pub command: Commands,
 }
+
 
 /// Enum representing available subcommands
 #[derive(Subcommand)]
@@ -22,8 +22,9 @@ pub enum Commands {
     Tree(TreeArgs),
     /// Display port ownership information
     Portown(PortownArgs),
-    // Additional subcommands will be added here as the toolkit expands
 }
+    // Additional subcommands will be added here as the toolkit expands
+
 
 /// Arguments for the 'tree' subcommand
 #[derive(Parser)]
@@ -69,20 +70,26 @@ pub struct TreeArgs {
     pub filter: Option<String>,
 }
 
+
+
 /// Arguments for the 'portown' subcommand
 #[derive(Parser)]
 pub struct PortownArgs {
-    /// Show only TCP connections
-    #[arg(short = 't', long)]
+    /// 显示监听状态端口
+    #[arg(short, long)]
+    pub listen: bool,
+
+    /// 仅显示TCP连接
+    #[arg(long)]
     pub tcp_only: bool,
 
-    /// Show only UDP connections
-    #[arg(short = 'u', long)]
+    /// 仅显示UDP连接
+    #[arg(long)]
     pub udp_only: bool,
 
-    /// Show only listening ports
-    #[arg(short = 'l', long)]
-    pub listen_only: bool,
+    /// 设置显示深度（进程树层级）
+    #[arg(short, long)]
+    pub depth: Option<usize>,
 
     /// Show only established connections
     #[arg(short = 'e', long)]

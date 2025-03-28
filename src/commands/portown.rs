@@ -30,8 +30,19 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
     let mut connections = Vec::new();
 
     // 解析netstat输出
+    // 在连接处理循环中添加深度过滤
+    let mut current_depth = 0;
+    
     for line in netstat_output.lines() {
-        // 根据参数过滤连接类型
+        // 应用深度过滤
+        if let Some(max_depth) = args.depth {
+            if current_depth >= max_depth {
+                break;
+            }
+        }
+        current_depth += 1;
+    
+        // 原有过滤逻辑保持不变
         if args.udp_only && !line.contains("UDP") {
             continue;
         }
@@ -64,7 +75,7 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
         };
         
         // 根据参数过滤连接状态
-        if args.listen_only && state != "LISTENING" {
+        if args.listen && state != "LISTENING" {
             continue;
         }
         if args.established_only && state != "ESTABLISHED" {
@@ -288,7 +299,7 @@ use winapi::um::handleapi::CloseHandle;
         
         process_handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid_num);
         if process_handle.is_null() {
-            let last_error = winapi::um::errhandlingapi::GetLastError();
+            let _last_error = winapi::um::errhandlingapi::GetLastError();
             /*
             eprintln!(
                 "Failed to open process with PID: {} (Error: {})", 
@@ -333,7 +344,7 @@ use winapi::um::handleapi::CloseHandle;
             path = String::from_utf8_lossy(&path_buffer).to_string();
             //eprintln!("Successfully got process path for PID {}: {}", pid, path);
         } else {
-            let last_error = winapi::um::errhandlingapi::GetLastError();
+            let _last_error = winapi::um::errhandlingapi::GetLastError();
             //eprintln!("Failed to get process path for PID: {} (Error: {})", pid, last_error);
         }
         CloseHandle(process_handle);

@@ -79,7 +79,8 @@ pub fn format_time(time: std::time::SystemTime) -> String {
 /// * `duration` - Execution duration in milliseconds
 /// * `status` - Execution status (success/failure)
 /// * `output_size` - Optional output size in bytes
-pub fn log_command_metrics(command: &str, duration: u128, status: &str, output_size: Option<usize>) {
+#[allow(unused_variables)]
+pub fn log_command_metrics(command: &str, _duration: u128, _status: &str, _output_size: Option<usize>) {
     /*
     println!(
         "[CMD_METRICS] command={} duration={}ms status={} output_size={}",

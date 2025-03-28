@@ -20,20 +20,20 @@
 toolboxer tree -d 2
 
 # 端口占用
-toolboxer portown -l
+toolboxer portown --listen
 
 ```
 
 ## 参数说明
 
-### tree 命令
+### portown 命令
 | 参数 | 简写 | 说明 |
 |------|------|-----|
-| --depth | -d | 遍历深度限制 |
-| --all | -a | 显示隐藏文件 |
-| --sort-size | -s | 按文件大小排序 |
-| --human-size | -S | 人性化显示大小 |
-| --filter | -f | 文件名模式过滤 |
+
+| --tcp-only |  | 仅显示TCP连接 |
+| --udp-only |  | 仅显示UDP连接 |
+| --depth | -d | 设置显示深度（进程树层级） |
+| --established-only | -e | 仅显示已建立的连接 |
 
 ## 贡献指南
 
