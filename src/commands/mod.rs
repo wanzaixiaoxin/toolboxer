@@ -1,15 +1,15 @@
-//! Command modules for the Toolboxer application
+//! Toolboxer应用的命令模块
 //!
-//! This module organizes and re-exports command executors for various
-//! Toolboxer features.
+//! 该模块组织并重新导出各种Toolboxer功能的命令执行器，
+//! 用于统一管理命令行子命令的实现。
 
-/// Module containing the implementation of the 'tree' command
+/// 包含'tree'命令实现的模块
 pub mod tree;
-/// Module containing the implementation of the 'portown' command
+/// 包含'portown'命令实现的模块
 pub mod portown;
 
-// Re-export command executors for easier access
-/// Re-export of the tree command's execute function
+// 重新导出命令执行器以便于访问
+/// 重新导出tree命令的执行函数
 pub use tree::execute as execute_tree;
-/// Re-export of the portown command's execute function
+/// 重新导出portown命令的执行函数
 pub use portown::execute as execute_portown;

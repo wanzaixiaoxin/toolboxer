@@ -72,7 +72,7 @@ pub struct TreeArgs {
 
 
 
-/// Arguments for the 'portown' subcommand
+/// 'portown'子命令的参数
 #[derive(Parser)]
 pub struct PortownArgs {
     /// 显示监听状态端口

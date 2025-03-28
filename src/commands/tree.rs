@@ -14,7 +14,7 @@ use std::path::Path;
 use std::time::SystemTime;
 use walkdir::{DirEntry, WalkDir};
 
-/// Implement conversion from walkdir::Error to our custom Error type
+/// 实现从walkdir::Error到自定义错误类型的转换
 impl From<walkdir::Error> for Error {
     fn from(err: walkdir::Error) -> Self {
         Error::Io(err.into())
@@ -37,8 +37,8 @@ impl DirEntryExt for DirEntry {
 /// 使用给定的参数和配置执行tree命令
 ///
 /// # 参数
-/// * `args` - tree命令的命令行参数
-/// * `config` - 命令的配置设置
+/// * `args` - 包含路径、最大深度、过滤模式等参数的TreeArgs结构体
+/// * `config` - 包含显示选项、排序方式、过滤条件等运行时配置
 ///
 /// # 返回
 /// * `Ok(())` 命令执行成功时返回
@@ -63,14 +63,15 @@ pub fn execute(args: &TreeArgs, config: &Config) -> Result<()> {
     Ok(())
 }
 
-/// Determines whether a directory entry should be included in the output
+/// 判断目录条目是否应包含在输出中
 ///
-/// # Arguments
-/// * `entry` - The directory entry to check
-/// * `config` - Configuration containing filter settings
+/// 过滤逻辑包含：
+/// 1. 根据配置隐藏/显示隐藏文件（以点开头的文件）
+/// 2. 按文件名模式过滤（当配置包含pattern时）
 ///
-/// # Returns
-/// `true` if the entry should be included, `false` otherwise
+/// # 参数
+/// * `entry` - 要检查的目录条目
+/// * `config` - 包含过滤设置的配置项（show_hidden、pattern等）
 fn filter_entry(entry: &DirEntry, config: &Config) -> bool {
     if !config.show_hidden && utils::is_hidden(entry.path()) {
         return false;
@@ -86,11 +87,17 @@ fn filter_entry(entry: &DirEntry, config: &Config) -> bool {
     }
 }
 
-/// Sorts directory entries according to the configuration
+/// 根据配置对目录条目进行排序
 ///
-/// # Arguments
-/// * `entries` - Vector of directory entries to sort
-/// * `config` - Configuration containing sort settings
+/// # 排序规则
+/// - Type: 目录优先排序
+/// - Size: 按文件大小升序排列
+/// - Date: 按修改时间升序排列
+/// - Name: 保持文件系统默认顺序
+///
+/// # 参数
+/// * `entries` - 待排序的目录条目向量
+/// * `config` - 包含排序枚举(SortBy)的配置项
 fn sort_entries(entries: &mut Vec<DirEntry>, config: &Config) {
     match config.sort_by {
         SortBy::Type => entries.sort_by_key(|a| !a.file_type().is_dir()),
@@ -105,18 +112,22 @@ fn sort_entries(entries: &mut Vec<DirEntry>, config: &Config) {
     }
 }
 
-/// Prints a directory entry with appropriate formatting and metadata
+/// 以带格式的方式打印目录条目及其元数据
 ///
-/// # Arguments
-/// * `entry` - The directory entry to print
-/// * `root` - The root path of the tree
-/// * `is_last` - Whether this is the last entry in its directory
-/// * `prefix` - The prefix to use for this entry (for tree structure)
-/// * `config` - Configuration for display options
+/// 递归生成子目录时会重新应用：
+/// 1. 过滤条件（filter_entry）
+/// 2. 排序规则（sort_entries）
+/// 3. 当前配置的显示选项
 ///
-/// # Returns
-/// * `Ok(())` if the entry is printed successfully
-/// * `Err(Error)` if an error occurs while accessing entry metadata
+/// # 参数
+/// * `entry` - 要打印的目录条目
+/// * `root` - 目录树的根路径
+/// * `is_last` - 当前条目是否为父目录的最后一个子项
+/// * `prefix` - 用于构建树状缩进的前缀字符串
+/// * `config` - 显示配置（权限、大小、日期等显示选项）
+///
+/// # 返回值
+/// 打印成功返回`Ok(())`，访问元数据出错时返回`Err(Error)`
 fn print_entry(
     entry: &DirEntry,
     root: &Path,

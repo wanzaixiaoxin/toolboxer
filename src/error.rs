@@ -1,12 +1,12 @@
-//! Error handling for the Toolboxer application
+//! Toolboxer 应用错误处理模块
 //!
-//! This module defines custom error types and a Result type alias
-//! to streamline error handling across the application.
+//! 本模块定义了自定义错误类型和Result类型别名
+//! 用于统一管理应用程序中的错误处理。
 
 use std::path::PathBuf;
 use thiserror::Error;
 
-/// Custom Result type for Toolboxer operations
+/// Toolboxer 操作的自定义Result类型
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Enum representing various error types that can occur in Toolboxer
