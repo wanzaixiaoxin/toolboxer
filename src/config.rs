@@ -46,8 +46,8 @@ pub enum SortBy {
 impl Config {
     /// Creates a new Config instance with default settings
     /// 
-    /// # Arguments
-    /// * `root` - The root directory path for operations
+    /// # 参数
+    /// * `root` - 操作根目录路径
     /// 
     /// # Returns
     /// A new Config instance with default settings
@@ -66,8 +66,8 @@ impl Config {
 
     /// Sets the maximum depth for directory traversal
     /// 
-    /// # Arguments
-    /// * `depth` - Maximum depth to traverse (must be non-negative)
+    /// # 参数
+    /// * `depth` - 最大遍历深度（必须非负）
     /// 
     /// # Returns
     /// * `Ok(Config)` - Updated configuration
@@ -127,8 +127,8 @@ impl Config {
 
     /// Sets a pattern for filtering files
     /// 
-    /// # Arguments
-    /// * `pattern` - Optional pattern string for filtering files
+    /// # 参数
+    /// * `pattern` - 文件过滤模式（可选字符串）
     /// 
     /// # Returns
     /// * `Ok(Config)` - Updated configuration

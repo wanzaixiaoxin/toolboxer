@@ -1,12 +1,12 @@
-//! Command-line interface definitions using clap
+//! 基于clap的命令行界面定义
 //! 
-//! This module defines the structure of the command-line arguments
-//! and subcommands for the Toolboxer application.
+//! 本模块定义Toolboxer应用程序的命令行参数结构
+//! 以及各个子命令的配置项。
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
-/// Main command-line interface structure
+/// 主命令行接口结构
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
@@ -15,57 +15,57 @@ pub struct Cli {
 }
 
 
-/// Enum representing available subcommands
+/// 枚举表示可用的子命令
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Display directory structure as a tree
+    /// 以树状结构显示目录
     Tree(TreeArgs),
-    /// Display port ownership information
+    /// 显示端口占用信息
     Portown(PortownArgs),
 }
     // Additional subcommands will be added here as the toolkit expands
 
 
-/// Arguments for the 'tree' subcommand
+/// 'tree'子命令的参数
 #[derive(Parser)]
 pub struct TreeArgs {
-    /// Root directory to start building the tree from
+    /// 生成目录树的根路径
     #[arg(default_value = ".")]
     pub path: PathBuf,
 
-    /// Maximum depth to display
+    /// 最大显示深度
     #[arg(short, long)]
     pub max_depth: Option<usize>,
 
-    /// Include hidden files
+    /// 包含隐藏文件
     #[arg(short, long)]
     pub all: bool,
 
-    /// Show file permissions
+    /// 显示文件权限
     #[arg(short, long)]
     pub permissions: bool,
 
-    /// Show human-readable sizes
+    /// 显示人类可读的文件大小
     #[arg(long)]
     pub human_size: bool,
 
-    /// Show last modified date
+    /// 显示最后修改时间
     #[arg(short, long)]
     pub modified: bool,
 
-    /// Sort by type
+    /// 按类型排序
     #[arg(long)]
     pub sort_type: bool,
 
-    /// Sort by size
+    /// 按大小排序
     #[arg(long)]
     pub sort_size: bool,
 
-    /// Sort by modification date
+    /// 按修改时间排序
     #[arg(long)]
     pub sort_date: bool,
 
-    /// Filter by pattern
+    /// 按模式过滤文件
     #[arg(short, long)]
     pub filter: Option<String>,
 }
@@ -91,7 +91,7 @@ pub struct PortownArgs {
     #[arg(short, long)]
     pub depth: Option<usize>,
 
-    /// Show only established connections
+    /// 仅显示已建立的连接
     #[arg(short = 'e', long)]
     pub established_only: bool,
 }

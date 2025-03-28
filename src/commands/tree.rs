@@ -1,7 +1,7 @@
-//! Tree command implementation
+//! tree命令实现
 //!
-//! This module provides functionality to display directory structures
-//! in a tree-like format with various display options and sorting capabilities.
+//! 本模块提供以树状格式显示目录结构的功能，
+//! 支持多种显示选项和排序方式。
 
 use crate::cli::TreeArgs;
 use crate::config::{Config, SortBy};
@@ -23,7 +23,7 @@ impl From<walkdir::Error> for Error {
 
 /// Helper extension trait for DirEntry to create entries from paths
 trait DirEntryExt {
-    /// Creates a DirEntry from a Path
+    /// 从路径创建DirEntry条目
     fn from_path(path: &Path) -> Result<DirEntry>;
 }
 
@@ -34,15 +34,15 @@ impl DirEntryExt for DirEntry {
     }
 }
 
-/// Executes the tree command with the given arguments and configuration
+/// 使用给定的参数和配置执行tree命令
 ///
-/// # Arguments
-/// * `args` - Command line arguments for the tree command
-/// * `config` - Configuration settings for the command
+/// # 参数
+/// * `args` - tree命令的命令行参数
+/// * `config` - 命令的配置设置
 ///
-/// # Returns
-/// * `Ok(())` if the command executes successfully
-/// * `Err(Error)` if an error occurs during execution
+/// # 返回
+/// * `Ok(())` 命令执行成功时返回
+/// * `Err(Error)` 执行过程中发生错误时返回
 pub fn execute(args: &TreeArgs, config: &Config) -> Result<()> {
     let root = &args.path;
     let walker = WalkDir::new(root).max_depth(config.max_depth.unwrap_or(std::usize::MAX));

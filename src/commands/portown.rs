@@ -10,7 +10,7 @@ use crate::cli::PortownArgs;
 pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
     use std::time::Instant;
     
-    // Record start time for performance measurement
+    // 记录开始时间以进行性能测量
     let start_time = Instant::now();
     
     // 获取TCP/UDP连接信息
@@ -54,7 +54,7 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
         }
         
         let parts: Vec<&str> = line.split_whitespace().collect();
-        // Windows netstat output has different column counts for TCP vs UDP
+        // Windows的netstat输出中TCP和UDP的列数不同
         let min_columns = if line.contains("TCP") { 5 } else { 4 };
         if parts.len() < min_columns {
             continue;
@@ -82,7 +82,7 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
             continue;
         }
         
-        // PID is in different columns for TCP vs UDP
+        // PID在TCP和UDP输出中位于不同列
         let pid = if line.contains("TCP") {
             parts[4].to_string()
         } else {
@@ -152,7 +152,7 @@ pub fn execute(args: &PortownArgs) -> crate::error::Result<()> {
         )?;
     }
 
-    // Log command execution time
+    // 记录命令执行时间
     crate::utils::log_command_metrics(
         "portown", 
         start_time.elapsed().as_millis(), 

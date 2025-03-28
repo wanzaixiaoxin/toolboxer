@@ -1,30 +1,31 @@
-//! Toolboxer - A comprehensive command-line toolkit for developers
-//! 
-//! This is the main entry point of the application. It handles command-line argument
-//! parsing and dispatches commands to their respective handlers.
+//! Toolboxer - 开发者命令行工具集
+//!
+//! 应用程序主入口点，负责：
+//! - 命令行参数解析
+//! - 命令路由分发
+//! - 整体错误处理
 
 use clap::Parser;
 use toolboxer::cli::{Cli, Commands};
 use toolboxer::commands;
 use toolboxer::config::{Config, SortBy};
 
-/// Main entry point for the Toolboxer application.
-/// 
-/// # Error
-/// Returns a `toolboxer::Result<()>` which wraps any errors that might occur
-/// during the execution of the program.
+/// Toolboxer应用程序主入口
+///
+/// # 错误处理
+/// 返回`toolboxer::Result<()>`封装可能出现的各类错误
 fn main() -> toolboxer::Result<()> {
-    // Parse command line arguments using clap
+    // 使用clap解析命令行参数
     let cli = Cli::parse();
 
-    // Match on the subcommand and handle each command
+    // 匹配子命令并路由处理逻辑
     match &cli.command {
-        // Handle the 'tree' subcommand
+        // 处理'tree'目录树子命令
         Commands::Tree(args) => {
-            // Create a new configuration instance with the specified root path
+            // 创建配置实例并指定根路径
             let mut config = Config::new(args.path.clone());
             
-            // Configure the tree display options based on command line arguments
+            // 根据命令行参数配置显示选项
             // Set maximum traversal depth if specified
             if let Some(depth) = args.max_depth {
                 config = config.with_max_depth(depth.try_into()?)?;
@@ -37,7 +38,7 @@ fn main() -> toolboxer::Result<()> {
                 .with_show_size(args.human_size)
                 .with_show_date(args.modified);
 
-            // Determine and set the sorting mode based on command line flags
+            // 根据命令行标志设置排序模式
             // Priority: type > size > date > name (default)
             let sort_by = if args.sort_type {
                 SortBy::Type
@@ -50,15 +51,15 @@ fn main() -> toolboxer::Result<()> {
             };
             config = config.with_sort_by(sort_by);
 
-            // Apply file name pattern filter if provided by the user
+            // 应用用户提供的文件名过滤模式
             if let Some(pattern) = args.filter.clone() {
                 config = config.with_pattern(Some(pattern))?;
             }
 
-            // Execute the tree command with the configured options
+            // 使用配置参数执行tree命令
             commands::execute_tree(args, &config)?;
         }
-        // Handle the 'portown' subcommand
+        // 处理'portown'端口占用查询命令
         Commands::Portown(args) => {
             commands::execute_portown(args)?;
         }

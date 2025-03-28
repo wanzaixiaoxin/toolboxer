@@ -12,27 +12,27 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Enum representing various error types that can occur in Toolboxer
 #[derive(Error, Debug)]
 pub enum Error {
-    /// Represents I/O errors
+    /// 表示I/O错误
     #[error("IO error: {0}")]
     Io(#[from] std::io::Error),
 
-    /// Represents integer conversion errors
+    /// 表示整型转换错误
     #[error("Integer conversion error: {0}")]
     IntConversion(#[from] std::num::TryFromIntError),
 
-    /// Represents errors when accessing a file or directory
+    /// 表示访问文件/目录时的错误
     #[error("Failed to access path: {}", .0.display())]
     PathAccess(PathBuf),
 
-    /// Represents errors when an invalid depth value is provided
+    /// 表示提供无效深度值时的错误
     #[error("Invalid depth value: {0}")]
     InvalidDepth(i32),
 
-    /// Represents errors related to file pattern matching
+    /// 表示文件模式匹配相关错误
     #[error("Pattern error: {0}")]
     Pattern(String),
 
-    /// Represents any other unspecified errors
+    /// 表示其他未指定错误
     #[error("Unknown error: {0}")]
     Other(String),
 }

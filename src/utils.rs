@@ -1,7 +1,7 @@
-//! Utility functions for the Toolboxer application
+//! Toolboxer应用程序的工具函数模块
 //!
-//! This module provides helper functions for common tasks like
-//! formatting permissions, handling file metadata, and colorizing output.
+//! 本模块提供常用功能的辅助函数，包括：
+//! 权限格式化、文件元数据处理和输出着色等功能。
 
 use colored::Colorize;
 use std::fs::{self, Metadata};
@@ -9,13 +9,13 @@ use std::path::Path;
 use std::time::SystemTime;
 use crate::error::Result;
 
-/// Formats file permissions as a string (e.g., "rwxr--r--")
+/// 将文件权限格式化为字符串（例如："rwxr--r--"）
 ///
-/// # Arguments
-/// * `metadata` - File metadata containing permission information
+/// # 参数
+/// * `metadata` - 包含权限信息的文件元数据
 ///
-/// # Returns
-/// A string representation of the file permissions
+/// # 返回值
+/// 文件权限的字符串表示
 pub fn format_permissions(metadata: &Metadata) -> String {
     let mut result = String::with_capacity(9);
     let readonly = metadata.permissions().readonly();
@@ -58,13 +58,13 @@ pub fn format_permissions(metadata: &Metadata) -> String {
     result
 }
 
-/// Formats a system time as a string
+/// 将系统时间格式化为字符串
 ///
-/// # Arguments
-/// * `time` - The system time to format
+/// # 参数
+/// * `time` - 需要格式化的系统时间
 ///
-/// # Returns
-/// A string representation of the time (seconds since epoch)
+/// # 返回值
+/// 时间的字符串表示（自纪元起的秒数）
 pub fn format_time(time: std::time::SystemTime) -> String {
     use std::time::UNIX_EPOCH;
     time.duration_since(UNIX_EPOCH)
@@ -72,13 +72,13 @@ pub fn format_time(time: std::time::SystemTime) -> String {
         .unwrap_or_else(|_| "Unknown".to_string())
 }
 
-/// Logs command execution metrics including duration and status
+/// 记录命令执行指标（包含耗时和状态）
 ///
-/// # Arguments
-/// * `command` - The command being executed
-/// * `duration` - Execution duration in milliseconds
-/// * `status` - Execution status (success/failure)
-/// * `output_size` - Optional output size in bytes
+/// # 参数
+/// * `command` - 正在执行的命令
+/// * `duration` - 执行耗时（毫秒）
+/// * `status` - 执行状态（成功/失败）
+/// * `output_size` - 可选输出大小（字节数）
 #[allow(unused_variables)]
 pub fn log_command_metrics(command: &str, _duration: u128, _status: &str, _output_size: Option<usize>) {
     /*
@@ -92,17 +92,17 @@ pub fn log_command_metrics(command: &str, _duration: u128, _status: &str, _outpu
     */
 }
 
-/// Determines if a file or directory is hidden
+/// 判断文件或目录是否隐藏
 ///
-/// Works cross-platform:
-/// - On Windows: Checks the hidden attribute
-/// - On Unix-like systems: Checks if the name starts with a dot
+/// 跨平台实现：
+/// - Windows系统：检查隐藏属性
+/// - 类Unix系统：检查名称是否以点开头
 ///
-/// # Arguments
-/// * `path` - The path to check
+/// # 参数
+/// * `path` - 需要检查的路径
 ///
-/// # Returns
-/// `true` if the file or directory is hidden, `false` otherwise
+/// # 返回值
+/// 如果隐藏返回`true`，否则返回`false`
 pub fn is_hidden(path: &Path) -> bool {
     if cfg!(windows) {
         use std::os::windows::fs::MetadataExt;
@@ -118,14 +118,14 @@ pub fn is_hidden(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
-/// Colorizes a file or directory name based on its type
+/// 根据类型为文件/目录名称着色
 ///
-/// # Arguments
-/// * `name` - The name to colorize
-/// * `is_dir` - Whether the name represents a directory
+/// # 参数
+/// * `name` - 需要着色的名称
+/// * `is_dir` - 是否表示目录
 ///
-/// # Returns
-/// A colorized string representation of the name
+/// # 返回值
+/// 着色后的字符串表示
 pub fn colorize_name(name: &str, is_dir: bool) -> String {
     if is_dir {
         name.blue().bold().to_string()
@@ -138,14 +138,14 @@ pub fn colorize_name(name: &str, is_dir: bool) -> String {
     }
 }
 
-/// Checks if a file name matches a simple pattern
+/// 检查文件名是否匹配简单模式
 ///
-/// # Arguments
-/// * `path` - The path to check
-/// * `pattern` - The pattern to match against
+/// # 参数
+/// * `path` - 需要检查的路径
+/// * `pattern` - 匹配模式
 ///
-/// # Returns
-/// `true` if the file name contains the pattern, `false` otherwise
+/// # 返回值
+/// 匹配返回`true`，否则返回`false`
 pub fn matches_pattern(path: &Path, pattern: &str) -> bool {
     path.file_name()
         .and_then(|name| name.to_str())
@@ -153,14 +153,14 @@ pub fn matches_pattern(path: &Path, pattern: &str) -> bool {
         .unwrap_or(false)
 }
 
-/// Retrieves file size and modification time
+/// 获取文件大小和修改时间
 ///
-/// # Arguments
-/// * `path` - The path to the file
+/// # 参数
+/// * `path` - 文件路径
 ///
-/// # Returns
-/// A tuple containing the file size in bytes and the modification time
-/// or an error if the file cannot be accessed
+/// # 返回值
+/// 包含文件大小（字节）和修改时间的元组
+/// 如果无法访问文件则返回错误
 pub fn get_file_info(path: &Path) -> Result<(u64, SystemTime)> {
     let metadata = fs::metadata(path)?;
     let size = metadata.len();
