@@ -162,6 +162,15 @@ fn print_entry(
         format!("{}├── ", prefix)
     };
 
+    // 确保前缀长度与深度严格匹配
+    let expected_prefix_len = depth * 4;
+    let new_prefix = if new_prefix.len() < expected_prefix_len {
+        let padding = " ".repeat(expected_prefix_len - new_prefix.len());
+        format!("{}{}", new_prefix, padding)
+    } else {
+        new_prefix
+    };
+
     let mut line = new_prefix.clone();
     line.push_str(&file_name);
 
@@ -198,30 +207,41 @@ fn print_entry(
             format!("{}│   ", prefix)
         };
 
+        // 确保子目录前缀长度与深度严格匹配
+        let expected_prefix_len = (depth + 1) * 4;
+        let new_prefix = if new_prefix.len() < expected_prefix_len {
+            let padding = " ".repeat(expected_prefix_len - new_prefix.len());
+            format!("{}{}", new_prefix, padding)
+        } else {
+            new_prefix
+        };
+
+        let mut visited_paths = std::collections::HashSet::new();
         let dir_entries = fs::read_dir(entry.path())?;
         let mut children: Vec<DirEntry> = Vec::new();
-        
+
         for dir_result in dir_entries {
             if let Ok(dir) = dir_result {
-                if let Ok(entry) = DirEntry::from_path(dir.path().as_path()) {
-                    if filter_entry(&entry, config) {
-                        children.push(entry);
+                println!("Processing directory entry: {:?}", dir.path()); // 添加日志
+                let path = dir.path();
+                let canonical_path = fs::canonicalize(&path)?;
+                if !visited_paths.contains(&canonical_path) {
+                    visited_paths.insert(canonical_path);
+                    if let Ok(entry) = DirEntry::from_path(path.as_path()) {
+                        println!("Adding entry: {:?}", entry.path()); // 添加日志
+                        if filter_entry(&entry, config) {
+                            children.push(entry);
+                        }
                     }
                 }
             }
         }
-        
+
         sort_entries(&mut children, config);
 
         for (i, child) in children.iter().enumerate() {
             let is_last_child = i == children.len() - 1;
-            print_entry(
-                &child,
-                root,
-                is_last_child,
-                &new_prefix,
-                config,
-            )?;
+            print_entry(&child, root, is_last_child, &new_prefix, config)?;
         }
     }
 

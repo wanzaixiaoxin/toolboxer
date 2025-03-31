@@ -7,8 +7,6 @@ use colored::Colorize;
 use std::fs::{self, Metadata};
 use std::path::Path;
 
-
-
 /// 将文件权限格式化为字符串（例如："rwxr--r--"）
 ///
 /// # 参数
@@ -19,7 +17,7 @@ use std::path::Path;
 pub fn format_permissions(metadata: &Metadata) -> String {
     let mut result = String::with_capacity(9);
     let readonly = metadata.permissions().readonly();
-    
+
     if cfg!(windows) {
         // Windows只显示简单的读写权限
         result.push(if !readonly { 'r' } else { '-' });
@@ -32,29 +30,29 @@ pub fn format_permissions(metadata: &Metadata) -> String {
         {
             use std::os::unix::fs::PermissionsExt;
             let mode = metadata.permissions().mode();
-            
+
             // 用户权限
             result.push(if mode & 0o400 != 0 { 'r' } else { '-' });
             result.push(if mode & 0o200 != 0 { 'w' } else { '-' });
             result.push(if mode & 0o100 != 0 { 'x' } else { '-' });
-            
+
             // 组权限
             result.push(if mode & 0o040 != 0 { 'r' } else { '-' });
             result.push(if mode & 0o020 != 0 { 'w' } else { '-' });
             result.push(if mode & 0o010 != 0 { 'x' } else { '-' });
-            
+
             // 其他用户权限
             result.push(if mode & 0o004 != 0 { 'r' } else { '-' });
             result.push(if mode & 0o002 != 0 { 'w' } else { '-' });
             result.push(if mode & 0o001 != 0 { 'x' } else { '-' });
         }
-        
+
         #[cfg(not(unix))]
         {
             result.push_str("rw-r--r--");
         }
     }
-    
+
     result
 }
 
@@ -80,7 +78,12 @@ pub fn format_time(time: std::time::SystemTime) -> String {
 /// * `status` - 执行状态（成功/失败）
 /// * `output_size` - 可选输出大小（字节数）
 #[allow(unused_variables)]
-pub fn log_command_metrics(command: &str, _duration: u128, _status: &str, _output_size: Option<usize>) {
+pub fn log_command_metrics(
+    command: &str,
+    _duration: u128,
+    _status: &str,
+    _output_size: Option<usize>,
+) {
     /*
     println!(
         "[CMD_METRICS] command={} duration={}ms status={} output_size={}",
@@ -111,7 +114,7 @@ pub fn is_hidden(path: &Path) -> bool {
             return metadata.file_attributes() & 0x2 != 0;
         }
     }
-    
+
     path.file_name()
         .and_then(|name| name.to_str())
         .map(|name| name.starts_with('.'))
@@ -137,7 +140,6 @@ pub fn colorize_name(name: &str, is_dir: bool) -> String {
         name.to_string()
     }
 }
-
 
 pub fn is_directory(path: &Path) -> std::io::Result<bool> {
     path.metadata().map(|md| md.is_dir())

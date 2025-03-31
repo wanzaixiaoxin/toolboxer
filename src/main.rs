@@ -10,7 +10,6 @@ use toolboxer::cli::{Cli, Commands};
 use toolboxer::commands;
 use toolboxer::config::{Config, SortBy};
 
-
 /// Toolboxer应用程序主入口
 ///
 /// # 错误处理
@@ -25,13 +24,13 @@ fn main() -> toolboxer::Result<()> {
         Commands::Tree(args) => {
             // 创建配置实例并指定根路径
             let mut config = Config::new(args.path.clone());
-            
+
             // 根据命令行参数配置显示选项
             // Set maximum traversal depth if specified
             if let Some(depth) = args.max_depth {
                 config = config.with_max_depth(depth)?;
             }
-            
+
             // Configure display options: hidden files, permissions, sizes, and dates
             config = config
                 .with_show_hidden(args.all)
@@ -63,8 +62,7 @@ fn main() -> toolboxer::Result<()> {
         // 处理'portown'端口占用查询命令
         Commands::Portown(args) => {
             commands::execute_portown(args)?;
-        }
-        // Additional subcommands will be handled here as the toolkit expands
+        } // Additional subcommands will be handled here as the toolkit expands
     }
 
     Ok(())

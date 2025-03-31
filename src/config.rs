@@ -1,5 +1,5 @@
 //! Configuration management for Toolboxer
-//! 
+//!
 //! This module provides configuration structures and methods for managing
 //! various settings and options used throughout the application.
 
@@ -7,7 +7,7 @@ use crate::error::Result;
 use std::path::PathBuf;
 
 /// Configuration structure for command execution
-/// 
+///
 /// Holds all the settings that control how commands operate,
 /// particularly for the tree command's display options.
 #[derive(Debug, Clone)]
@@ -47,10 +47,10 @@ pub enum SortBy {
 
 impl Config {
     /// Creates a new Config instance with default settings
-    /// 
+    ///
     /// # 参数
     /// * `root` - 操作根目录路径
-    /// 
+    ///
     /// # Returns
     /// A new Config instance with default settings
     pub fn new(root: PathBuf) -> Self {
@@ -68,10 +68,10 @@ impl Config {
     }
 
     /// Sets the maximum depth for directory traversal
-    /// 
+    ///
     /// # 参数
     /// * `depth` - 最大遍历深度（必须非负）
-    /// 
+    ///
     /// # Returns
     /// * `Ok(Config)` - Updated configuration
     /// * `Err(Error)` - If depth is negative
@@ -81,7 +81,7 @@ impl Config {
     }
 
     /// Sets whether to show hidden files
-    /// 
+    ///
     /// # Arguments
     /// * `show_hidden` - Whether to show hidden files and directories
     pub fn with_show_hidden(mut self, show_hidden: bool) -> Self {
@@ -90,7 +90,7 @@ impl Config {
     }
 
     /// Sets the sorting method for directory entries
-    /// 
+    ///
     /// # Arguments
     /// * `sort_by` - The sorting method to use
     pub fn with_sort_by(mut self, sort_by: SortBy) -> Self {
@@ -99,7 +99,7 @@ impl Config {
     }
 
     /// Sets whether to show file permissions
-    /// 
+    ///
     /// # Arguments
     /// * `show_permissions` - Whether to display file permissions
     pub fn with_show_permissions(mut self, show_permissions: bool) -> Self {
@@ -108,7 +108,7 @@ impl Config {
     }
 
     /// Sets whether to show file sizes
-    /// 
+    ///
     /// # Arguments
     /// * `show_size` - Whether to display file sizes
     pub fn with_show_size(mut self, show_size: bool) -> Self {
@@ -117,7 +117,7 @@ impl Config {
     }
 
     /// Sets whether to show modification dates
-    /// 
+    ///
     /// # Arguments
     /// * `show_date` - Whether to display modification dates
     pub fn with_show_date(mut self, show_date: bool) -> Self {
@@ -126,10 +126,10 @@ impl Config {
     }
 
     /// Sets a pattern for filtering files
-    /// 
+    ///
     /// # 参数
     /// * `pattern` - 文件过滤模式（可选字符串）
-    /// 
+    ///
     /// # Returns
     /// * `Ok(Config)` - Updated configuration
     /// * `Err(Error)` - If pattern is invalid

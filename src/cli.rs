@@ -1,5 +1,5 @@
 //! 基于clap的命令行界面定义
-//! 
+//!
 //! 本模块定义Toolboxer应用程序的命令行参数结构
 //! 以及各个子命令的配置项。
 
@@ -14,7 +14,6 @@ pub struct Cli {
     pub command: Commands,
 }
 
-
 /// 枚举表示可用的子命令
 #[derive(Subcommand)]
 pub enum Commands {
@@ -23,8 +22,7 @@ pub enum Commands {
     /// 显示端口占用信息
     Portown(PortownArgs),
 }
-    // Additional subcommands will be added here as the toolkit expands
-
+// Additional subcommands will be added here as the toolkit expands
 
 /// 'tree'子命令的参数
 #[derive(Parser)]
@@ -72,8 +70,6 @@ pub struct TreeArgs {
     #[arg(short = 'D', long = "dirs")]
     pub directories_only: bool,
 }
-
-
 
 /// 'portown'子命令的参数
 #[derive(Parser)]
